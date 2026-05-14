@@ -7,18 +7,15 @@ local player = Players.LocalPlayer
 -- =========================
 -- CONFIG
 -- =========================
-
 local KEY_FILE_NAME = "MxzyHub_Key.txt"
 local GET_KEY_LINK = "http://mxzy.store/"
 local VERIFY_URL = "https://mxzy.store/verify500.php"
 local MAX_ATTEMPTS = 5
-
 local attempts = 0
 
 -- =========================
 -- UI
 -- =========================
-
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MxzyKeySystem"
 screenGui.ResetOnSpawn = false
@@ -30,7 +27,6 @@ mainFrame.Size = UDim2.new(0, 320, 0, 220)
 mainFrame.Position = UDim2.new(0.5, -160, 0.5, -110)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 mainFrame.BorderSizePixel = 0
-
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,12)
 
 local uiStroke = Instance.new("UIStroke")
@@ -93,7 +89,6 @@ statusLabel.TextSize = 12
 -- =========================
 -- FUNCTIONS
 -- =========================
-
 local function getHWID()
 	return game:GetService("RbxAnalyticsService"):GetClientId()
 end
@@ -149,31 +144,41 @@ local function deleteKey()
 end
 
 -- =========================
--- RUN SCRIPT FROM SERVER (МОДИФИЦИРОВАННАЯ)
+-- RUN SCRIPT (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 -- =========================
-
 local function runScript(scriptSource)
-	screenGui:Destroy()
+	if not scriptSource or scriptSource == "" then
+		warn("[Mxzy] Пустой скрипт получен")
+		return
+	end
 
-	if scriptSource and scriptSource ~= "" then
-		-- Сохраняем основной скрипт в файл
-		if writefile then
-			writefile("MxzyHub_MainScript.lua", scriptSource)
-			print("[Mxzy] Основной скрипт сохранён в файл: MxzyHub_MainScript.lua")
-		end
+	-- Сохраняем скрипт в файл
+	local success, err = pcall(function()
+		writefile("MxzyHub_MainScript.lua", scriptSource)
+	end)
 
-		-- Выводим скрипт в консоль
-		print("========== ОСНОВНОЙ СКРИПТ ==========")
-		print(scriptSource)
-		print("========== КОНЕЦ СКРИПТА ==========")
+	if success then
+		print("[Mxzy] ✓ Скрипт успешно сохранён: MxzyHub_MainScript.lua")
+	else
+		warn("[Mxzy] Не удалось сохранить скрипт: " .. tostring(err))
+	end
 
-		-- Запускаем
-		local fn = loadstring(scriptSource)
-		if fn then
-			pcall(fn)
-		else
-			warn("Failed to load script")
-		end
+	-- Выводим скрипт в консоль
+	print("========== ОСНОВНОЙ СКРИПТ ==========")
+	print(scriptSource)
+	print("========== КОНЕЦ СКРИПТА ==========")
+
+	-- Уничтожаем GUI
+	if screenGui then
+		screenGui:Destroy()
+	end
+
+	-- Запускаем скрипт
+	local fn = loadstring(scriptSource)
+	if fn then
+		pcall(fn)
+	else
+		warn("[Mxzy] Ошибка при загрузке скрипта")
 	end
 end
 
@@ -203,7 +208,6 @@ end
 -- =========================
 -- VERIFY BUTTON
 -- =========================
-
 verifyButton.MouseButton1Click:Connect(function()
 	local key = textbox.Text
 	if key == "" then
@@ -227,7 +231,6 @@ end)
 -- =========================
 -- GET KEY
 -- =========================
-
 getKeyButton.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(GET_KEY_LINK)
@@ -238,7 +241,6 @@ end)
 -- =========================
 -- AUTO LOGIN
 -- =========================
-
 task.spawn(function()
 	local saved = loadKey()
 	if not saved then return end
