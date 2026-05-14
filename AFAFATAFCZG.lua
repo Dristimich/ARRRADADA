@@ -1,29 +1,30 @@
 getgenv().SecureMode = true
-
 getgenv().VisualRbx = {
     HiddenForever = false,
     Balance = 22000,
     AddRobuxVal = 20000
 }
 
--- Создаём GUI
+-- Создаём ScreenGui
 local gui = Instance.new("ScreenGui")
 gui.Name = "VisualRbx_Silent"
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = game:GetService("CoreGui")
 
--- === ПЛАВАЮЩАЯ КНОПКА ДЛЯ ТЕЛЕФОНА ===
+-- === ПЛАВАЮЩАЯ КНОПКА (КВАДРАТИК) ===
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ToggleButton"
-toggleBtn.Size = UDim2.new(0, 55, 0, 55)
-toggleBtn.Position = UDim2.new(0, 25, 0, 180)
+toggleBtn.Name = "VR_Button"
+toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+toggleBtn.Position = UDim2.new(0, 30, 0, 200)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 136)
 toggleBtn.Text = "VR"
 toggleBtn.TextColor3 = Color3.new(0, 0, 0)
-toggleBtn.TextSize = 20
+toggleBtn.TextSize = 22
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
+toggleBtn.ZIndex = 999
 toggleBtn.Parent = gui
 
 -- Главное меню
@@ -34,6 +35,7 @@ main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 main.Visible = false
 main.BackgroundTransparency = 1
 main.Active = true
+main.ZIndex = 10
 main.Parent = gui
 
 -- Заголовок
@@ -46,7 +48,7 @@ title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
 title.Parent = main
 
--- Функция открытия/закрытия
+-- Функция открытия/закрытия меню
 local function toggleMenu()
     if getgenv().VisualRbx.HiddenForever then return end
     
@@ -54,49 +56,50 @@ local function toggleMenu()
         main.Visible = true
         for i = 1, 12 do
             main.BackgroundTransparency = 1 - (i / 12)
-            wait(0.025)
+            wait(0.02)
         end
     else
         for i = 1, 12 do
             main.BackgroundTransparency = i / 12
-            wait(0.025)
+            wait(0.02)
         end
         main.Visible = false
     end
 end
 
+-- Нажатие на квадратик
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- Кнопки меню
-local function addButton(text, y, func)
+-- Кнопки в меню
+local function createButton(text, y, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -40, 0, 42)
+    btn.Size = UDim2.new(1, -40, 0, 45)
     btn.Position = UDim2.new(0, 20, 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     btn.Text = text
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.TextSize = 16
     btn.Font = Enum.Font.GothamBold
     btn.Parent = main
-    btn.MouseButton1Click:Connect(func)
+    btn.MouseButton1Click:Connect(callback)
 end
 
-addButton("Buy 1x", 60, function()
+createButton("Buy 1x", 60, function()
     getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal
     print("Куплено! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-addButton("Buy 5x", 110, function()
+createButton("Buy 5x", 115, function()
     getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal * 5
     print("Куплено 5x! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-addButton("Buy 10x", 160, function()
+createButton("Buy 10x", 170, function()
     getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal * 10
     print("Куплено 10x! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-addButton("Hide Forever", 220, function()
+createButton("Hide Forever", 235, function()
     getgenv().VisualRbx.HiddenForever = true
     main.Visible = false
 end)
@@ -108,4 +111,4 @@ game:GetService("UserInputService").InputBegan:Connect(function(input)
     end
 end)
 
-print("VisualRbx загружен. Зелёный квадратик 'VR' должен быть виден.")
+print("VisualRbx загружен. Ищи зелёный квадратик 'VR'.")
