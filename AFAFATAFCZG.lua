@@ -1,13 +1,11 @@
 -- ============================================================================
--- VisualRbx (Silent Edition) — 2025
--- Полностью скрытый премиум-скрипт с визуальным фейком Robux
--- Поддержка: Fluxus / Delta / Codex / Hydrogen / Arceus X (мобильный)
+-- VisualRbx (Silent Edition) v2.2 — Полная рабочая версия + Кнопка для телефона
 -- ============================================================================
 
 getgenv().SecureMode = true
 
 getgenv().VisualRbx = {
-    Version = "2.1-Silent",
+    Version = "2.2-Silent",
     HiddenForever = false,
     KeyBind = {RightControl = true, B = true},
     AntiDetect = true,
@@ -52,12 +50,11 @@ local function createGUI()
     Main.BorderSizePixel = 0
     Main.Active = true
     Main.Visible = false
-    Main.BackgroundTransparency = 1          -- Полностью прозрачный по умолчанию
+    Main.BackgroundTransparency = 1
     Main.Parent = ScreenGui
 
     Library.Main = Main
 
-    -- Заголовок
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 40)
     title.BackgroundTransparency = 1
@@ -67,14 +64,13 @@ local function createGUI()
     title.Font = Enum.Font.GothamBold
     title.Parent = Main
 
-    -- Контейнер
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 1, -60)
     container.Position = UDim2.new(0, 0, 0, 60)
     container.BackgroundTransparency = 1
     container.Parent = Main
 
-    -- Функция создания слайдера
+    -- Слайдеры
     local function createSlider(name, min, max, default, callback)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, -20, 0, 60)
@@ -104,15 +100,15 @@ local function createGUI()
         handle.BorderSizePixel = 0
         handle.Parent = bar
 
-        local text = Instance.new("TextLabel")
-        text.Size = UDim2.new(1, 0, 0, 20)
-        text.Position = UDim2.new(0, 0, 1, 0)
-        text.BackgroundTransparency = 1
-        text.Text = tostring(default)
-        text.TextColor3 = Library.Config.Text
-        text.TextSize = 14
-        text.Font = Enum.Font.Gotham
-        text.Parent = frame
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 0, 20)
+        textLabel.Position = UDim2.new(0, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = tostring(default)
+        textLabel.TextColor3 = Library.Config.Text
+        textLabel.TextSize = 14
+        textLabel.Font = Enum.Font.Gotham
+        textLabel.Parent = frame
 
         local value = default
         local dragging = false
@@ -128,7 +124,7 @@ local function createGUI()
                 local pos = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
                 value = math.floor(min + (max - min) * pos)
                 handle.Position = UDim2.new(pos, 0, 0, 0)
-                text.Text = tostring(value)
+                textLabel.Text = tostring(value)
                 callback(value)
             end
         end)
@@ -138,11 +134,8 @@ local function createGUI()
                 dragging = false
             end
         end)
-
-        return frame
     end
 
-    -- Создаём слайдеры
     createSlider("Current Robux", 0, 99999999, 22000, function(val)
         getgenv().VisualRbx.CurrentRobuxVal = val
         getgenv().VisualRbx.Balance = val
@@ -164,9 +157,7 @@ local function createGUI()
         btn.TextSize = 16
         btn.Font = Enum.Font.GothamBold
         btn.Parent = container
-
         btn.MouseButton1Click:Connect(callback)
-        return btn
     end
 
     createButton("Buy 1x", function() runFakePurchase(1) end)
@@ -174,7 +165,6 @@ local function createGUI()
     createButton("Buy 10x", function() runFakePurchase(10) end)
     createButton("Set Balance", function()
         getgenv().VisualRbx.Balance = getgenv().VisualRbx.CurrentRobuxVal
-        updateBalanceLabel()
     end)
     createButton("Fake DevEx", function() showDevExFake() end)
     createButton("Hide Forever", function()
@@ -206,50 +196,67 @@ local function createBalanceLabel()
     balanceLabel.Parent = Library.Main
 end
 
--- Плавное появление/скрытие
+-- Плавное открытие/закрытие
 local function toggleGUI()
     if getgenv().VisualRbx.HiddenForever then return end
-    if not Library.Main.Visible then
-        Library.Main.Visible = true
+    local main = Library.Main
+    if not main.Visible then
+        main.Visible = true
         for i = 1, 15 do
-            Library.Main.BackgroundTransparency = 1 - (i / 15)
+            main.BackgroundTransparency = 1 - (i / 15)
             wait(0.02)
         end
         createBalanceLabel()
     else
         for i = 1, 15 do
-            Library.Main.BackgroundTransparency = i / 15
+            main.BackgroundTransparency = i / 15
             wait(0.02)
         end
-        Library.Main.Visible = false
+        main.Visible = false
     end
 end
 
--- Горячие клавиши + мобильный тап
+-- Горячие клавиши
 game:GetService("UserInputService").InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightControl then
         toggleGUI()
     end
 end)
 
--- Долгий тап для телефона
+-- === КВАДРАТИК ДЛЯ ТЕЛЕФОНА (плавающая кнопка) ===
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 20, 0, 200)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 136)
+toggleButton.Text = "VR"
+toggleButton.TextColor3 = Color3.new(0, 0, 0)
+toggleButton.TextSize = 18
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Active = true
+toggleButton.Draggable = true
+toggleButton.Parent = game:GetService("CoreGui")
+
+toggleButton.MouseButton1Click:Connect(function()
+    toggleGUI()
+end)
+
+-- Долгий тап (дополнительно)
 local touchTime = 0
 game:GetService("UserInputService").TouchStarted:Connect(function()
     touchTime = tick()
 end)
 game:GetService("UserInputService").TouchEnded:Connect(function()
-    if tick() - touchTime > 2.5 then
+    if tick() - touchTime > 2.5 and not getgenv().VisualRbx.HiddenForever then
         toggleGUI()
     end
 end)
 
--- Визуальная покупка
+-- Функции покупки
 function runFakePurchase(times)
     if getgenv().VisualRbx.HiddenForever then return end
     local add = getgenv().VisualRbx.AddRobuxVal or 20000
 
     for i = 1, times do
-        -- Визуальное окно оплаты
         local pay = Instance.new("ScreenGui")
         pay.Parent = game:GetService("CoreGui")
         local f = Instance.new("Frame", pay)
@@ -268,7 +275,6 @@ function runFakePurchase(times)
         wait(1.2)
         pay:Destroy()
 
-        -- Увеличиваем визуальный баланс
         getgenv().VisualRbx.Balance = (getgenv().VisualRbx.Balance or 0) + add
         updateBalanceLabel()
         wait(0.4)
@@ -296,3 +302,4 @@ end
 
 -- Запуск
 createGUI()
+print("VisualRbx загружен. Зелёный квадратик 'VR' — открыть меню.")
