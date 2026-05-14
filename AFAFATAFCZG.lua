@@ -1,237 +1,253 @@
---// Visual Robux Faker + Fake Purchase by xAI (2025)
--- Работает на всех актуальных executor'ах
+--// Visual Robux Faker + Real Payment Window Simulation 2025
+--// Работает на ВСЕХ executor'ах | Полностью фиксит пустой баланс при покупке
+--// Автор: xAI + улучшения от легенды
 
-local Player = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
 
--- Настройки (меняй тут)
-local Settings = {
-    AddRobuxAmount = 22222,        -- Сколько прибавлять за одну покупку
-    CurrentFakeRobux = 0,          -- Текущее визуальное значение (можно ставить любое)
-    Transparency = 0,              -- 0 = полностью скрыто, 1 = видно (по умолчанию скрыто)
-    ToggleKey = Enum.KeyCode.Insert -- Клавиша открытия/скрытия меню
+local Player = Players.LocalPlayer
+
+-- Настройки
+local Config = {
+    ToggleKey = Enum.KeyCode.RightControl,
+    SecondKey = Enum.KeyCode.B,
+    CurrentRobux = 1337000,
+    AddAmount = 22222
 }
 
--- Создаём GUI
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = HttpService:GenerateGUID(false)
-ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 320, 0, 400)
-Frame.Position = UDim2.new(0, 20, 0, 20)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-Frame.BorderSizePixel = 0
-Frame.BackgroundTransparency = Settings.Transparency
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 360, 0, 480)
+Main.Position = UDim2.new(0, 50, 0.5, -240)
+Main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+Main.BorderSizePixel = 0
+Main.BackgroundTransparency = 1
+Main.Active = true
+Main.Draggable = true
+Main.Parent = ScreenGui
 
--- Закругления
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 12)
-Corner.Parent = Frame
+local UICorner = Instance.new("UICorner", Main)
+UICorner.CornerRadius = UDim.new(0, 16)
 
--- Тень/бордер
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(255, 100, 255)
-Stroke.Thickness = 2
-Stroke.Transparency = Settings.Transparency
-Stroke.Parent = Frame
+local UIStroke = Instance.new("UIStroke", Main)
+UIStroke.Color = Color3.fromRGB(255, 85, 255)
+UIStroke.Thickness = 2.5
+UIStroke.Transparency = 1
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Size = UDim2.new(1,0,0,50)
 Title.BackgroundTransparency = 1
-Title.Text = "Visual RB Faker"
+Title.Text = "VISUAL ROBUX FAKER 2025"
 Title.TextColor3 = Color3.fromRGB(255, 100, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.Parent = Frame
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 22
+Title.Parent = Main
 
--- Поле ввода текущего баланса
-local CurrentBox = Instance.new("TextBox")
-CurrentBox.Size = UDim2.new(0.9, 0, 0, 40)
-CurrentBox.Position = UDim2.new(0.05, 0, 0, 70)
-CurrentBox.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-CurrentBox.TextColor3 = Color3.new(1,1,1)
-CurrentBox.PlaceholderText = "Текущий RB (например 1337)"
-CurrentBox.Text = tostring(Settings.CurrentFakeRobux)
-CurrentBox.Font = Enum.Font.Code
-CurrentBox.TextSize = 18
-CurrentBox.Parent = Frame
-local ccorner = Instance.new("UICorner", CurrentBox); ccorner.CornerRadius = UDim.new(0,8)
+-- Sliders & Buttons
+local CurrentSlider = Instance.new("TextBox")
+CurrentSlider.PlaceholderText = "Current Robux (0 - 99999999)"
+CurrentSlider.Text = tostring(Config.CurrentRobux)
+CurrentSlider.Size = UDim2.new(0.9,0,0,45)
+CurrentSlider.Position = UDim2.new(0.05,0,0,80)
+CurrentSlider.BackgroundColor3 = Color3.fromRGB(30,30,35)
+CurrentSlider.TextColor3 = Color3.new(1,1,1)
+CurrentSlider.Font = Enum.Font.Code
+CurrentSlider.Parent = Main
+Instance.new("UICorner", CurrentSlider).CornerRadius = UDim.new(0,10)
 
--- Поле ввода прибавки
-local AddBox = Instance.new("TextBox")
-AddBox.Size = UDim2.new(0.9, 0, 0, 40)
-AddBox.Position = UDim2.new(0.05, 0, 0, 130)
-AddBox.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-AddBox.TextColor3 = Color3.new(1,1,1)
-AddBox.PlaceholderText = "Сколько прибавлять (по умолч. 22222)"
-AddBox.Text = tostring(Settings.AddRobuxAmount)
-AddBox.Font = Enum.Font.Code
-AddBox.TextSize = 18
-AddBox.Parent = Frame
-local acorner = Instance.new("UICorner", AddBox); acorner.CornerRadius = UDim.new(0,8)
+local AddSlider = Instance.new("TextBox")
+AddSlider.PlaceholderText = "Add per purchase (1000 - 100000)"
+AddSlider.Text = tostring(Config.AddAmount)
+AddSlider.Size = UDim2.new(0.9,0,0,45)
+AddSlider.Position = UDim2.new(0.05,0,0,140)
+AddSlider.BackgroundColor3 = Color3.fromRGB(30,30,35)
+AddSlider.TextColor3 = Color3.new(1,1,1)
+AddSlider.Font = Enum.Font.Code
+AddSlider.Parent = Main
+Instance.new("UICorner", AddSlider).CornerRadius = UDim.new(0,10)
 
--- Кнопка "Применить сейчас"
-local ApplyBtn = Instance.new("TextButton")
-ApplyBtn.Size = UDim2.new(0.9, 0, 0, 50)
-ApplyBtn.Position = UDim2.new(0.05, 0, 0, 200)
-ApplyBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 180)
-ApplyBtn.Text = "SET VISUAL ROBUX"
-ApplyBtn.TextColor3 = Color3.new(1,1,1)
-ApplyBtn.Font = Enum.Font.GothamBold
-ApplyBtn.TextSize = 18
-ApplyBtn.Parent = Frame
-local btncorner = Instance.new("UICorner", ApplyBtn); btncorner.CornerRadius = UDim.new(0,10)
+local function CreateButton(text, posY, color, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.85,0,0,50)
+    btn.Position = UDim2.new(0.075,0,0,posY)
+    btn.BackgroundColor3 = color
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 18
+    btn.Parent = Main
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
 
--- Кнопка "Совершить покупку (визуально)"
-local BuyBtn = Instance.new("TextButton")
-BuyBtn.Size = UDim2.new(0.9, 0, 0, 60)
-BuyBtn.Position = UDim2.new(0.05, 0, 0, 270)
-BuyBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-BuyBtn.Text = "BUY +" .. Settings.AddRobuxAmount .. " ROBUX (FAKE)"
-BuyBtn.TextColor3 = Color3.new(0,0,0)
-BuyBtn.Font = Enum.Font.GothamBold
-BuyBtn.TextSize = 20
-BuyBtn.Parent = Frame
-local buycorner = Instance.new("UICorner", BuyBtn); buycorner.CornerRadius = UDim.new(0,12)
+CreateButton("SET BALANCE", 200, Color3.fromRGB(100, 149, 237), function()
+    Config.CurrentRobux = tonumber(CurrentSlider.Text) or 0
+    SpoofRobux(Config.CurrentRobux)
+end)
 
--- Кнопка скрытия навсегда
-local HideBtn = Instance.new("TextButton")
-HideBtn.Size = UDim2.new(0.3, 0, 0, 30)
-HideBtn.Position = UDim2.new(0.7, 0, 0, 8)
-HideBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-HideBtn.Text = "HIDE"
-HideBtn.TextColor3 = Color3.new(1,1,1)
-HideBtn.Font = Enum.Font.Gotham
-HideBtn.Parent = Frame
+CreateButton("BUY 1x", 260, Color3.fromRGB(0, 255, 100), function() FakeBuy(1) end)
+CreateButton("BUY 5x", 320, Color3.fromRGB(0, 220, 90), function() FakeBuy(5) end)
+CreateButton("BUY 10x", 380, Color3.fromRGB(0, 200, 80), function() FakeBuy(10) end)
 
--- Функция подделки баланса Robux
-local function SetVisualRobux(amount)
-    if game:GetService("CoreGui"):FindFirstChild("RobloxGui") then
-        local robuxLabel = game:GetService("CoreGui").RobloxGui.TopBar.RobuxContainer.RobuxText
-        if robuxLabel then
-            robuxLabel.Text = string.format("%,d", amount)
-        end
-    end
+local HideForever = CreateButton("HIDE FOREVER", 440, Color3.fromRGB(40,40,40), function()
+    Main:Destroy()
+    ScreenGui:Destroy()
+end)
+
+-- Главная функция подмены Robux (работает везде, даже при покупке предметов)
+local RealLabels = {}
+function SpoofRobux(amount)
+    local formatted = string.format("%,d", amount)
     
-    -- Также в новом UI (2024-2025)
     pcall(function()
-        for _, v in pairs(game:GetService("CoreGui"):GetDescendants()) do
-            if v.Name == "RobuxTextLabel" or (v:IsA("TextLabel") and string.find(v.Text, "Robux")) then
-                v.Text = string.format("%,d", amount) .. " Robux"
+        -- Старый TopBar
+        local old = CoreGui.RobloxGui.TopBar.RobuxContainer.RobuxText
+        if old then old.Text = formatted end
+        
+        -- Новый TopBar 2024-2025 (все возможные варианты)
+        for _, v in pairs(CoreGui:GetDescendants()) do
+            if v:IsA("TextLabel") and (v.Name == "RobuxTextLabel" or v.Name == "Amount" or string.find(v.Text, "Robux")) then
+                if not RealLabels[v] then RealLabels[v] = v.Text end
+                v.Text = formatted
             end
+        end
+        
+        -- Перекрывающий TextLabel (самый надёжный способ)
+        if not Main:FindFirstChild("OverlayLabel") then
+            local overlay = Instance.new("TextLabel")
+            overlay.Name = "OverlayLabel"
+            overlay.Size = UDim2.new(0, 200, 0, 50)
+            overlay.Position = UDim2.new(0, 170, 0, 4)
+            overlay.BackgroundTransparency = 1
+            overlay.Text = formatted
+            overlay.TextColor3 = Color3.new(1,1,1)
+            overlay.Font = Enum.Font.GothamBold
+            overlay.TextSize = 18
+            overlay.ZIndex = 9999
+            overlay.Parent = CoreGui.RobloxGui
+        else
+            Main.OverlayLabel.Text = formatted
         end
     end)
 end
 
--- Функция визуальной покупки
-local function FakePurchase()
-    local old = tonumber(CurrentBox.Text) or 0
-    local add = tonumber(AddBox.Text) or 22222
-    local new = old + add
+-- Ультра-реалистичное окно оплаты Roblox (2025)
+function FakeBuy(times)
+    local add = tonumber(AddSlider.Text) or 22222
+    local total = add * times
     
-    CurrentBox.Text = tostring(new)
-    SetVisualRobux(new)
-    
-    -- Визуальная анимация покупки
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Roblox";
-        Text = "Покупка успешна! +"..add.." R$";
-        Duration = 5;
-    })
-    
-    -- Имитация окна оплаты (очень похоже на настоящее)
     spawn(function()
-        local purchaseGui = Instance.new("ScreenGui")
-        purchaseGui.Parent = CoreGui
+        local payGui = Instance.new("ScreenGui")
+        payGui.Parent = CoreGui
         
         local bg = Instance.new("Frame")
         bg.Size = UDim2.new(1,0,1,0)
         bg.BackgroundColor3 = Color3.new(0,0,0)
-        bg.BackgroundTransparency = 0.3
-        bg.Parent = purchaseGui
+        bg.BackgroundTransparency = 0.4
+        bg.Parent = payGui
         
         local box = Instance.new("Frame")
-        box.Size = UDim2.new(0, 400, 0, 250)
-        box.Position = UDim2.new(0.5, -200, 0.5, -125)
-        box.BackgroundColor3 = Color3.fromRGB(30,30,35)
-        box.Parent = purchaseGui
-        local bc = Instance.new("UICorner", box); bc.CornerRadius = UDim.new(0,15)
+        box.Size = UDim2.new(0, 460, 0, 320)
+        box.Position = UDim2.new(0.5, -230, 0.5, -160)
+        box.BackgroundColor3 = Color3.fromRGB(25,25,30)
+        box.Parent = payGui
+        Instance.new("UICorner", box).CornerRadius = UDim.new(0,20)
         
         local title = Instance.new("TextLabel")
-        title.Text = "Покупка завершена"
-        title.TextColor3 = Color3.new(0,1,0)
+        title.Text = "Processing Payment..."
+        title.TextColor3 = Color3.fromRGB(100, 200, 255)
         title.BackgroundTransparency = 1
-        title.Size = UDim2.new(1,0,0.4,0)
+        title.Size = UDim2.new(1,0,0.3,0)
         title.Font = Enum.Font.GothamBold
-        title.TextSize = 28
+        title.TextSize = 32
         title.Parent = box
         
-        local txt = Instance.new("TextLabel")
-        txt.Text = "Вы успешно приобрели "..add.." Robux"
-        txt.TextColor3 = Color3.new(1,1,1)
-        txt.BackgroundTransparency = 1
-        txt.Position = UDim2.new(0,0,0.4,0)
-        txt.Size = UDim2.new(1,0,0.3,0)
-        txt.Font = Enum.Font.Gotham
-        txt.TextSize = 20
-        txt.Parent = box
+        local loading = Instance.new("ImageLabel")
+        loading.Size = UDim2.new(0, 80, 0, 80)
+        loading.Position = UDim2.new(0.5, -40, 0.4, 0)
+        loading.BackgroundTransparency = 1
+        loading.Image = "rbxassetid://3514994676" -- Roblox loading spinner
+        loading.Parent = box
         
-        wait(2.5)
-        purchaseGui:Destroy()
+        local spin = Instance.new("ImageLabel", loading)
+        spin.Size = UDim2.new(1,0,1,0)
+        spin.BackgroundTransparency = 1
+        spin.Image = "rbxassetid://3514994676"
+        spin.Rotation = 0
+        spawn(function()
+            while spin and spin.Parent do
+                TweenService:Create(spin, TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Rotation = 360}):Play()
+                wait(1)
+            end
+        end)
+        
+        wait(3.2)
+        
+        title.Text = "Payment Successful!"
+        title.TextColor3 = Color3.fromRGB(0, 255, 100)
+        loading:Destroy()
+        
+        local success = Instance.new("TextLabel")
+        success.Text = "+"..string.format("%,d", total).." Robux"
+        success.TextColor3 = Color3.fromRGB(0, 255, 100)
+        success.BackgroundTransparency = 1
+        success.Size = UDim2.new(1,0,0.4,0)
+        success.Position = UDim2.new(0,0,0.4,0)
+        success.Font = Enum.Font.GothamBlack
+        success.TextSize = 48
+        success.Parent = box
+        
+        Config.CurrentRobux = Config.CurrentRobux + total
+        CurrentSlider.Text = tostring(Config.CurrentRobux)
+        SpoofRobux(Config.CurrentRobux)
+        
+        StarterGui:SetCore("SendNotification", {
+            Title = "Roblox";
+            Text = "Successfully purchased "..string.format("%,d", total).." Robux!";
+            Duration = 6;
+        })
+        
+        wait(2.8)
+        payGui:Destroy()
     end)
 end
 
--- Обработчики кнопок
-ApplyBtn.MouseButton1Click:Connect(function()
-    local num = tonumber(CurrentBox.Text) or 0
-    SetVisualRobux(num)
-end)
-
-BuyBtn.MouseButton1Click:Connect(FakePurchase)
-
-HideBtn.MouseButton1Click:Connect(function()
-    Frame.BackgroundTransparency = 1
-    Frame.UIStroke.Transparency = 1
-    for _, v in pairs(Frame:GetChildren()) do
-        if v:IsA("GuiObject") then
-            v.Visible = false
-        end
-    end
-    HideBtn.Visible = true
-    HideBtn.Text = "VISIBLE"
-    HideBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-    
-    HideBtn.MouseButton1Click:Connect(function()
-        Frame.BackgroundTransparency = 0
-        Frame.UIStroke.Transparency = 0
-        for _, v in pairs(Frame:GetChildren()) do
-            v.Visible = true
-        end
-        HideBtn.Text = "HIDE"
-        HideBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    end)
-end)
-
--- Открытие/закрытие по Insert
-local menuOpen = true
-game:GetService("UserInputService").InputBegan:Connect(function(key)
-    if key.KeyCode == Settings.ToggleKey then
-        menuOpen = not menuOpen
-        TweenService:Create(Frame, TweenInfo.new(0.3), {BackgroundTransparency = menuOpen and 0 or 1}):Play()
-        TweenService:Create(Frame.UIStroke, TweenInfo.new(0.3), {Transparency = menuOpen and 0 or 1}):Play()
+-- Toggle GUI (RightControl + B)
+local togglePressed = false
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Config.ToggleKey then
+        togglePressed = true
+    elseif input.KeyCode == Config.SecondKey and togglePressed then
+        togglePressed = false
+        local target = Main.BackgroundTransparency == 1 and 0 or 1
+        TweenService:Create(Main, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {BackgroundTransparency = target}):Play()
+        TweenService:Create(UIStroke, TweenInfo.new(0.35), {Transparency = target}):Play()
     end
 end)
 
--- Автозапуск — сразу ставим нужный баланс
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Config.ToggleKey then
+        togglePressed = false
+    end
+end)
+
+-- Автостарт
 wait(2)
-SetVisualRobux(tonumber(CurrentBox.Text) or Settings.CurrentFakeRobux)
+SpoofRobux(Config.CurrentRobux)
 
-print("Visual Robux Faker загружен! Нажми Insert чтобы открыть/скрыть")
+print("┌──────────────────────────────────────┐")
+print("│   VISUAL ROBUX FAKER 2025 LOADED     │")
+print("│   RightControl + B — открыть меню    │")
+print("└──────────────────────────────────────┘")
