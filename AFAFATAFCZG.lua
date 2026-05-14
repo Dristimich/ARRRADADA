@@ -1,20 +1,20 @@
 getgenv().SecureMode = true
+
 getgenv().VisualRbx = {
     HiddenForever = false,
     Balance = 22000,
     AddRobuxVal = 20000
 }
 
--- Создаём ScreenGui
+-- Создаём GUI
 local gui = Instance.new("ScreenGui")
 gui.Name = "VisualRbx_Silent"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = game:GetService("CoreGui")
 
--- === ПЛАВАЮЩАЯ КНОПКА (КВАДРАТИК) ===
+-- === ПЛАВАЮЩАЯ КНОПКА ДЛЯ ТЕЛЕФОНА ===
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "VR_Button"
 toggleBtn.Size = UDim2.new(0, 60, 0, 60)
 toggleBtn.Position = UDim2.new(0, 30, 0, 200)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 136)
@@ -24,7 +24,7 @@ toggleBtn.TextSize = 22
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.Active = true
 toggleBtn.Draggable = true
-toggleBtn.ZIndex = 999
+toggleBtn.ZIndex = 9999
 toggleBtn.Parent = gui
 
 -- Главное меню
@@ -35,7 +35,6 @@ main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 main.Visible = false
 main.BackgroundTransparency = 1
 main.Active = true
-main.ZIndex = 10
 main.Parent = gui
 
 -- Заголовок
@@ -48,10 +47,9 @@ title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
 title.Parent = main
 
--- Функция открытия/закрытия меню
+-- Функция открытия/закрытия
 local function toggleMenu()
     if getgenv().VisualRbx.HiddenForever then return end
-    
     if not main.Visible then
         main.Visible = true
         for i = 1, 12 do
@@ -67,11 +65,10 @@ local function toggleMenu()
     end
 end
 
--- Нажатие на квадратик
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
--- Кнопки в меню
-local function createButton(text, y, callback)
+-- Кнопки
+local function addButton(text, y, func)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -40, 0, 45)
     btn.Position = UDim2.new(0, 20, 0, y)
@@ -81,34 +78,34 @@ local function createButton(text, y, callback)
     btn.TextSize = 16
     btn.Font = Enum.Font.GothamBold
     btn.Parent = main
-    btn.MouseButton1Click:Connect(callback)
+    btn.MouseButton1Click:Connect(func)
 end
 
-createButton("Buy 1x", 60, function()
-    getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal
+addButton("Buy 1x", 60, function()
+    getgenv().VisualRbx.Balance = getgenv().VisualRbx.Balance + getgenv().VisualRbx.AddRobuxVal
     print("Куплено! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-createButton("Buy 5x", 115, function()
-    getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal * 5
+addButton("Buy 5x", 115, function()
+    getgenv().VisualRbx.Balance = getgenv().VisualRbx.Balance + (getgenv().VisualRbx.AddRobuxVal * 5)
     print("Куплено 5x! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-createButton("Buy 10x", 170, function()
-    getgenv().VisualRbx.Balance += getgenv().VisualRbx.AddRobuxVal * 10
+addButton("Buy 10x", 170, function()
+    getgenv().VisualRbx.Balance = getgenv().VisualRbx.Balance + (getgenv().VisualRbx.AddRobuxVal * 10)
     print("Куплено 10x! Баланс: " .. getgenv().VisualRbx.Balance)
 end)
 
-createButton("Hide Forever", 235, function()
+addButton("Hide Forever", 235, function()
     getgenv().VisualRbx.HiddenForever = true
     main.Visible = false
 end)
 
--- Горячая клавиша (ПК)
+-- Горячая клавиша
 game:GetService("UserInputService").InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightControl then
         toggleMenu()
     end
 end)
 
-print("VisualRbx загружен. Ищи зелёный квадратик 'VR'.")
+print("VisualRbx загружен. Зелёный квадратик 'VR' должен быть на экране.")
