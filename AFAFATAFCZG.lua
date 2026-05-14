@@ -1,257 +1,188 @@
 --[[
-    VisualRbx (Silent Edition) - 2025 Premium Silent Fake Robux
-    Author: vxpe
-    Style: Vogue / DarkHub / Neverlose
-    Detection Rate: 0.00% (при включённом Anti-Screenshot & Studio Bypass)
+    VisualRbx (Silent Edition) v2 - Fixed
+    Полностью самостоятельный скрипт (без внешних библиотек)
 ]]
 
-getgenv().SecureMode = true
-getgenv().VisualRbx = getgenv().VisualRbx or {
-    Settings = {
-        ToggleKey = Enum.KeyCode.RightControl,
-        SecondaryKey = Enum.KeyCode.B,
-        AddAmount = 10000,
-        CurrentFake = 0,
-        HiddenForever = false,
-        AntiScreenshot = true,
-        AntiStudio = true
-    }
-}
+getgenv().VisualRbx = getgenv().VisualRbx or {}
+local Settings = getgenv().VisualRbx
 
-local VisualRbx = getgenv().VisualRbx
+Settings.CurrentFake = Settings.CurrentFake or 0
+Settings.AddAmount = Settings.AddAmount or 10000
+Settings.HiddenForever = false
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- // Anti-Detect Core
-if VisualRbx.Settings.AntiStudio and gethui and game.PlaceId ~= 0 and LocalPlayer.PlayerGui:FindFirstChild("RobloxGui") then
-    if identifyexecutor and identifyexecutor() == "RobloxStudio" then
-        return
-    end
-end
-
-local function SafeGetHui()
-    if gethui then return gethui() end
-    if syn and syn.protect_gui then return syn.protect_gui(Instance.new("ScreenGui")) end
-    return CoreGui
-end
-
--- // Main GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = HttpService:GenerateGUID(false)
-ScreenGui.DisplayOrder = 999999999
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Name = "VisualRbx_Silent"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = SafeGetHui()
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = gethui and gethui() or game:GetService("CoreGui")
 
--- Anti-Screenshot
-if VisualRbx.Settings.AntiScreenshot then
-    if syn and syn.request then
-        pcall(function()
-            syn.request({
-                Url = "http://127.0.0.1:6463/rpc?v=1",
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode({
-                    cmd = "INVITE_BROWSER",
-                    nonce = HttpService:GenerateGUID(false)
-                })
-            })
-        end)
-    end
-end
+-- ===================== FAKE ROBUX OVERLAY =====================
+local FakeRobux = Instance.new("TextLabel")
+FakeRobux.Name = "FakeBalance"
+FakeRobux.Size = UDim2.new(0, 120, 0, 28)
+FakeRobux.Position = UDim2.new(0, 85, 0, 5)
+FakeRobux.BackgroundTransparency = 1
+FakeRobux.Text = tostring(Settings.CurrentFake)
+FakeRobux.TextColor3 = Color3.fromRGB(255, 220, 100)
+FakeRobux.Font = Enum.Font.GothamBold
+FakeRobux.TextSize = 20
+FakeRobux.TextStrokeTransparency = 0.6
+FakeRobux.ZIndex = 999999
+FakeRobux.Parent = ScreenGui
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 420, 0, 310)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -155)
-MainFrame.BackgroundTransparency = 1
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Visible = true
-MainFrame.Parent = ScreenGui
+-- ===================== MAIN GUI =====================
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 380, 0, 280)
+Main.Position = UDim2.new(0.5, -190, 0.5, -140)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Main.BackgroundTransparency = 1
+Main.BorderSizePixel = 0
+Main.Visible = true
+Main.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 12)
-Corner.Parent = MainFrame
+local Corner = Instance.new("UICorner", Main)
+Corner.CornerRadius = UDim.new(0, 10)
 
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(80, 180, 255)
-Stroke.Thickness = 1.6
-Stroke.Transparency = 0.7
-Stroke.Parent = MainFrame
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Color = Color3.fromRGB(70, 140, 255)
+Stroke.Thickness = 1.5
+Stroke.Transparency = 1
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -20, 0, 40)
-Title.Position = UDim2.new(0, 10, 0, 8)
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, -20, 0, 35)
+Title.Position = UDim2.new(0, 15, 0, 8)
 Title.BackgroundTransparency = 1
-Title.Text = "VisualRbx <font color='#5080ff'>(Silent Edition)</font>"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Font = Enum.Font.GothamBold
+Title.Text = "VisualRbx <font color='#4d9eff'>(Silent)</font>"
 Title.RichText = true
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
-Title.Parent = MainFrame
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- // Fake Robux Label (Overlay)
-local FakeRobuxLabel = Instance.new("TextLabel")
-FakeRobuxLabel.Name = "FakeRobuxOverlay"
-FakeRobuxLabel.Size = UDim2.new(0, 200, 0, 50)
-FakeRobuxLabel.Position = UDim2.new(0, 10, 0, 0)
-FakeRobuxLabel.BackgroundTransparency = 1
-FakeRobuxLabel.Text = "0"
-FakeRobuxLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
-FakeRobuxLabel.Font = Enum.Font.GothamBold
-FakeRobuxLabel.TextSize = 22
-FakeRobuxLabel.TextStrokeTransparency = 0.8
-FakeRobuxLabel.ZIndex = 999999999
-FakeRobuxLabel.Parent = ScreenGui
+-- ===================== CONTROLS =====================
+local function CreateButton(text, posY, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 160, 0, 32)
+    btn.Position = UDim2.new(0, 20, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Parent = Main
+    
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
 
-local function UpdateFakeRobuxPosition()
-    if LocalPlayer and LocalPlayer:FindFirstChild("PlayerGui") then
-        local robuxGui = LocalPlayer.PlayerGui:FindFirstChild("RobloxGui") or CoreGui:FindFirstChild("RobloxGui")
-        if robuxGui then
-            local realLabel = robuxGui:FindFirstChild("TopBarApp", true) and robuxGui:FindFirstChild("TopBarApp", true):FindFirstChild("RobuxContainer")
-            if realLabel then
-                FakeRobuxLabel.Position = realLabel.AbsolutePosition + Vector2.new(35, 5)
-                FakeRobuxLabel.Size = realLabel.AbsoluteSize
-            end
-        end
+-- Current Robux (TextBox)
+local CurrentBox = Instance.new("TextBox", Main)
+CurrentBox.Size = UDim2.new(0, 160, 0, 30)
+CurrentBox.Position = UDim2.new(0, 200, 0, 50)
+CurrentBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+CurrentBox.Text = tostring(Settings.CurrentFake)
+CurrentBox.TextColor3 = Color3.fromRGB(255,255,255)
+CurrentBox.Font = Enum.Font.Gotham
+CurrentBox.TextSize = 14
+CurrentBox.PlaceholderText = "Current Robux"
+Instance.new("UICorner", CurrentBox).CornerRadius = UDim.new(0, 6)
+
+CurrentBox.FocusLost:Connect(function()
+    local num = tonumber(CurrentBox.Text)
+    if num then
+        Settings.CurrentFake = num
+        FakeRobux.Text = tostring(num)
     end
-end
-
-local function SetFakeRobux(amount)
-    VisualRbx.Settings.CurrentFake = amount
-    FakeRobuxLabel.Text = string.format("%d", amount)
-    TweenService:Create(FakeRobuxLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
-end
-
--- // DrRay Style UI Elements
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/vxpepublic/DrRay/main/Library.lua"))()
-
-local Window = Library:Window({
-    Title = "",
-    Size = UDim2.new(0, 420, 0, 310),
-    Position = UDim2.new(0.5, -210, 0.5, -155),
-    Theme = "Dark"
-})
-
-Window:Notify("VisualRbx Silent", "Loaded successfully. Press RightControl + B to toggle.", 4)
-
-local Tab = Window:Tab("Main", "Visual")
-
-Tab:Slider("Current Robux", 0, 99999999, VisualRbx.Settings.CurrentFake, function(v)
-    SetFakeRobux(v)
 end)
 
-Tab:Slider("Add Robux Amount", 1000, 100000, VisualRbx.Settings.AddAmount, function(v)
-    VisualRbx.Settings.AddAmount = v
+-- Add Amount
+local AddBox = Instance.new("TextBox", Main)
+AddBox.Size = UDim2.new(0, 160, 0, 30)
+AddBox.Position = UDim2.new(0, 200, 0, 90)
+AddBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+AddBox.Text = tostring(Settings.AddAmount)
+AddBox.TextColor3 = Color3.fromRGB(255,255,255)
+AddBox.Font = Enum.Font.Gotham
+AddBox.TextSize = 14
+AddBox.PlaceholderText = "Add Amount"
+Instance.new("UICorner", AddBox).CornerRadius = UDim.new(0, 6)
+
+AddBox.FocusLost:Connect(function()
+    local num = tonumber(AddBox.Text)
+    if num then Settings.AddAmount = num end
 end)
 
-Tab:Button("Buy 1x", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/vxpepublic/fakepurchase/main/simulate.lua"))()
-    task.wait(2.8)
-    SetFakeRobux(VisualRbx.Settings.CurrentFake + VisualRbx.Settings.AddAmount)
+-- Buttons
+CreateButton("Buy 1x", 130, function()
+    Settings.CurrentFake += Settings.AddAmount
+    FakeRobux.Text = tostring(Settings.CurrentFake)
 end)
 
-Tab:Button("Buy 5x", function()
+CreateButton("Buy 5x", 170, function()
     for i = 1, 5 do
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/vxpepublic/fakepurchase/main/simulate.lua"))()
-        task.wait(2.6)
-        SetFakeRobux(VisualRbx.Settings.CurrentFake + VisualRbx.Settings.AddAmount)
+        Settings.CurrentFake += Settings.AddAmount
+        FakeRobux.Text = tostring(Settings.CurrentFake)
+        task.wait(0.15)
     end
 end)
 
-Tab:Button("Buy 10x", function()
+CreateButton("Buy 10x", 210, function()
     for i = 1, 10 do
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/vxpepublic/fakepurchase/main/simulate.lua"))()
-        task.wait(2.5)
-        SetFakeRobux(VisualRbx.Settings.CurrentFake + VisualRbx.Settings.AddAmount)
+        Settings.CurrentFake += Settings.AddAmount
+        FakeRobux.Text = tostring(Settings.CurrentFake)
+        task.wait(0.1)
     end
 end)
 
-Tab:Button("Set Balance Instantly", function()
-    SetFakeRobux(VisualRbx.Settings.CurrentFake)
-end)
-
-Tab:Button("Fake DevEx (Pending)", function()
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Developer Exchange";
-        Text = "Your request for " .. VisualRbx.Settings.AddAmount .. " Robux has been submitted.";
-        Duration = 8;
-    })
-    task.wait(1)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Pending Robux";
-        Text = "+" .. VisualRbx.Settings.AddAmount .. " Robux (Pending)";
-        Duration = 10;
-    })
-end)
-
-Tab:Button("Hide Forever (Until Rejoin)", function()
-    VisualRbx.Settings.HiddenForever = true
-    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Stroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
-    task.wait(0.4)
+CreateButton("Hide Forever", 250, function()
+    Settings.HiddenForever = true
+    TweenService:Create(Main, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+    task.wait(0.35)
     ScreenGui.Enabled = false
 end)
 
--- // Toggle System
-local Toggled = false
-UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == VisualRbx.Settings.ToggleKey then
-        VisualRbx.ControlDown = true
-    end
-    if VisualRbx.ControlDown and input.KeyCode == VisualRbx.Settings.SecondaryKey then
-        if VisualRbx.Settings.HiddenForever then return end
-        Toggled = not Toggled
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            BackgroundTransparency = Toggled and 0.03 or 1
+-- ===================== TOGGLE (RightControl + B) =====================
+local isOpen = false
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        Settings.ControlHeld = true
+    elseif Settings.ControlHeld and input.KeyCode == Enum.KeyCode.B then
+        if Settings.HiddenForever then return end
+        
+        isOpen = not isOpen
+        
+        local targetTransparency = isOpen and 0.05 or 1
+        local strokeTransparency = isOpen and 0.65 or 1
+        
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
+            BackgroundTransparency = targetTransparency
         }):Play()
         TweenService:Create(Stroke, TweenInfo.new(0.3), {
-            Transparency = Toggled and 0.7 or 1
+            Transparency = strokeTransparency
         }):Play()
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == VisualRbx.Settings.ToggleKey then
-        VisualRbx.ControlDown = false
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        Settings.ControlHeld = false
     end
 end)
 
--- // Auto Update Position
-RunService.RenderStepped:Connect(function()
-    if FakeRobuxLabel and FakeRobuxLabel.Parent then
-        UpdateFakeRobuxPosition()
-    end
-end)
-
--- // Init
-SetFakeRobux(VisualRbx.Settings.CurrentFake)
-ScreenGui.Enabled = true
-MainFrame.BackgroundTransparency = 1
+-- ===================== INIT =====================
+Main.BackgroundTransparency = 1
 Stroke.Transparency = 1
+FakeRobux.Text = tostring(Settings.CurrentFake)
 
-print([[
-
-VisualRbx (Silent Edition)
-     Loaded in 100% stealth mode.
-     Toggle: RightControl + B
-     Undetectable since 2025.
-]])
-
--- Self-protect
-task.spawn(function()
-    while task.wait(300) do
-        if not ScreenGui or not ScreenGui.Parent then
-            -- Auto recovery
-            ScreenGui.Parent = SafeGetHui()
-        end
-    end
-end)
+print("VisualRbx Silent Edition loaded. Press RightControl + B")
