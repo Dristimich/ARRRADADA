@@ -1,13 +1,13 @@
 -- ============================================================================
 -- VisualRbx (Silent Edition) — 2025
--- Полностью скрытый, анти-детект, премиум GUI с визуальным фейком Robux
+-- Полностью скрытый премиум-скрипт с визуальным фейком Robux
 -- Поддержка: Fluxus / Delta / Codex / Hydrogen / Arceus X (мобильный)
 -- ============================================================================
 
 getgenv().SecureMode = true
 
 getgenv().VisualRbx = {
-    Version = "2.1-Silent-Mobile",
+    Version = "2.1-Silent",
     HiddenForever = false,
     KeyBind = {RightControl = true, B = true},
     AntiDetect = true,
@@ -18,17 +18,12 @@ getgenv().VisualRbx = {
 
 local Library = {
     Main = nil,
-    Elements = {},
     Config = {
         Background = Color3.fromRGB(25, 25, 25),
         Accent = Color3.fromRGB(0, 255, 136),
-        Text = Color3.fromRGB(255, 255, 255),
-        TransitionTime = 0.3
+        Text = Color3.fromRGB(255, 255, 255)
     }
 }
-
-local function lerp(a, b, t) return a + (b - a) * t end
-local function round(num, places) places = places or 0 return math.floor((num * 10^places + 0.5) / 10^places) end
 
 local function formatNumber(n)
     local s = tostring(math.floor(n))
@@ -49,18 +44,18 @@ local function createGUI()
         ScreenGui.DisplayOrder = -1
     end
 
-    Library.Main = Instance.new("Frame")
-    Library.Main.Name = "MainMenu"
-    Library.Main.Size = UDim2.new(0, 380, 0, 520)
-    Library.Main.Position = UDim2.new(0.5, -190, 0.5, -260)
-    Library.Main.BackgroundColor3 = Library.Config.Background
-    Library.Main.BorderSizePixel = 0
-    Library.Main.Active = true
-    Library.Main.Visible = false
-    Library.Main.BackgroundTransparency = 1
-    Library.Main.Parent = ScreenGui
+    local Main = Instance.new("Frame")
+    Main.Name = "MainMenu"
+    Main.Size = UDim2.new(0, 380, 0, 520)
+    Main.Position = UDim2.new(0.5, -190, 0.5, -260)
+    Main.BackgroundColor3 = Library.Config.Background
+    Main.BorderSizePixel = 0
+    Main.Active = true
+    Main.Visible = false
+    Main.BackgroundTransparency = 1          -- Полностью прозрачный по умолчанию
+    Main.Parent = ScreenGui
 
-    Library.Main.ClipsDescendants = true
+    Library.Main = Main
 
     -- Заголовок
     local title = Instance.new("TextLabel")
@@ -70,42 +65,131 @@ local function createGUI()
     title.TextColor3 = Library.Config.Accent
     title.TextSize = 20
     title.Font = Enum.Font.GothamBold
-    title.Parent = Library.Main
+    title.Parent = Main
 
+    -- Контейнер
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 1, -60)
     container.Position = UDim2.new(0, 0, 0, 60)
     container.BackgroundTransparency = 1
-    container.Parent = Library.Main
+    container.Parent = Main
 
-    -- Слайдеры и кнопки (код слайдеров и кнопок оставлен без изменений для краткости)
-    -- ... (полный код слайдеров и кнопок как в твоей версии, только без ошибки)
+    -- Функция создания слайдера
+    local function createSlider(name, min, max, default, callback)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, -20, 0, 60)
+        frame.Position = UDim2.new(0, 10, 0, #container:GetChildren() * 70)
+        frame.BackgroundTransparency = 1
+        frame.Parent = container
 
-    -- Кнопка Hide Forever
-    local hideBtn = Instance.new("TextButton")
-    hideBtn.Size = UDim2.new(1, -20, 0, 40)
-    hideBtn.Position = UDim2.new(0, 10, 1, -50)
-    hideBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-    hideBtn.Text = "Hide Forever"
-    hideBtn.TextColor3 = Color3.new(1, 1, 1)
-    hideBtn.Font = Enum.Font.GothamBold
-    hideBtn.TextSize = 16
-    hideBtn.Parent = Library.Main
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.BackgroundTransparency = 1
+        label.Text = name
+        label.TextColor3 = Library.Config.Text
+        label.TextSize = 14
+        label.Font = Enum.Font.Gotham
+        label.Parent = frame
 
-    hideBtn.MouseButton1Click:Connect(function()
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(1, 0, 0, 6)
+        bar.Position = UDim2.new(0, 0, 0, 25)
+        bar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        bar.BorderSizePixel = 0
+        bar.Parent = frame
+
+        local handle = Instance.new("Frame")
+        handle.Size = UDim2.new(0, 12, 1, 0)
+        handle.BackgroundColor3 = Library.Config.Accent
+        handle.BorderSizePixel = 0
+        handle.Parent = bar
+
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 0, 20)
+        text.Position = UDim2.new(0, 0, 1, 0)
+        text.BackgroundTransparency = 1
+        text.Text = tostring(default)
+        text.TextColor3 = Library.Config.Text
+        text.TextSize = 14
+        text.Font = Enum.Font.Gotham
+        text.Parent = frame
+
+        local value = default
+        local dragging = false
+
+        bar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+            end
+        end)
+
+        bar.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local pos = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                value = math.floor(min + (max - min) * pos)
+                handle.Position = UDim2.new(pos, 0, 0, 0)
+                text.Text = tostring(value)
+                callback(value)
+            end
+        end)
+
+        game:GetService("UserInputService").InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+
+        return frame
+    end
+
+    -- Создаём слайдеры
+    createSlider("Current Robux", 0, 99999999, 22000, function(val)
+        getgenv().VisualRbx.CurrentRobuxVal = val
+        getgenv().VisualRbx.Balance = val
+    end)
+
+    createSlider("Add Robux", 1000, 100000, 20000, function(val)
+        getgenv().VisualRbx.AddRobuxVal = val
+    end)
+
+    -- Кнопки
+    local function createButton(text, callback, color)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -20, 0, 40)
+        btn.Position = UDim2.new(0, 10, 0, #container:GetChildren() * 70 + 10)
+        btn.BackgroundColor3 = color or Library.Config.Accent
+        btn.BackgroundTransparency = 0.2
+        btn.Text = text
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.TextSize = 16
+        btn.Font = Enum.Font.GothamBold
+        btn.Parent = container
+
+        btn.MouseButton1Click:Connect(callback)
+        return btn
+    end
+
+    createButton("Buy 1x", function() runFakePurchase(1) end)
+    createButton("Buy 5x", function() runFakePurchase(5) end)
+    createButton("Buy 10x", function() runFakePurchase(10) end)
+    createButton("Set Balance", function()
+        getgenv().VisualRbx.Balance = getgenv().VisualRbx.CurrentRobuxVal
+        updateBalanceLabel()
+    end)
+    createButton("Fake DevEx", function() showDevExFake() end)
+    createButton("Hide Forever", function()
         getgenv().VisualRbx.HiddenForever = true
-        Library.Main.Visible = false
+        Main.Visible = false
     end)
 
     return ScreenGui
 end
 
--- Создаём визуальный баланс
-local balanceLabel = nil
+-- Визуальный баланс
+local balanceLabel
 local function updateBalanceLabel()
     if not balanceLabel then return end
-    local val = getgenv().VisualRbx.Balance or getgenv().VisualRbx.CurrentRobuxVal
-    balanceLabel.Text = "Robux: " .. formatNumber(val)
+    balanceLabel.Text = "Robux: " .. formatNumber(getgenv().VisualRbx.Balance)
 end
 
 local function createBalanceLabel()
@@ -113,8 +197,8 @@ local function createBalanceLabel()
     balanceLabel = Instance.new("TextLabel")
     balanceLabel.Size = UDim2.new(0, 180, 0, 36)
     balanceLabel.Position = UDim2.new(0, 10, 0, 10)
-    balanceLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     balanceLabel.BackgroundTransparency = 0.4
+    balanceLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     balanceLabel.Text = "Robux: 22,000"
     balanceLabel.TextColor3 = Library.Config.Accent
     balanceLabel.TextSize = 18
@@ -122,65 +206,93 @@ local function createBalanceLabel()
     balanceLabel.Parent = Library.Main
 end
 
--- Анимация и переключение
-local function animateAlpha(target, duration)
-    duration = duration or 0.3
-    local start = Library.Main.BackgroundTransparency
-    for i = 1, 20 do
-        Library.Main.BackgroundTransparency = lerp(start, target, i / 20)
-        wait(duration / 20)
-    end
-    Library.Main.BackgroundTransparency = target
-end
-
+-- Плавное появление/скрытие
 local function toggleGUI()
     if getgenv().VisualRbx.HiddenForever then return end
     if not Library.Main.Visible then
         Library.Main.Visible = true
-        animateAlpha(0, 0.3)
+        for i = 1, 15 do
+            Library.Main.BackgroundTransparency = 1 - (i / 15)
+            wait(0.02)
+        end
         createBalanceLabel()
     else
-        animateAlpha(1, 0.3)
+        for i = 1, 15 do
+            Library.Main.BackgroundTransparency = i / 15
+            wait(0.02)
+        end
         Library.Main.Visible = false
     end
 end
 
--- Горячие клавиши + мобильная поддержка (долгий тап)
-local UserInputService = game:GetService("UserInputService")
-UserInputService.InputBegan:Connect(function(input)
+-- Горячие клавиши + мобильный тап
+game:GetService("UserInputService").InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightControl then
         toggleGUI()
     end
 end)
 
--- Мобильный открывалка (долгий тап по экрану)
-local touchStart = 0
-UserInputService.TouchStarted:Connect(function()
-    touchStart = tick()
+-- Долгий тап для телефона
+local touchTime = 0
+game:GetService("UserInputService").TouchStarted:Connect(function()
+    touchTime = tick()
 end)
-UserInputService.TouchEnded:Connect(function()
-    if tick() - touchStart > 2.5 then
+game:GetService("UserInputService").TouchEnded:Connect(function()
+    if tick() - touchTime > 2.5 then
         toggleGUI()
     end
 end)
 
--- Визуальная покупка и DevEx (оставлены как в оригинале)
-local function showPaymentWindow() 
-    -- код окна оплаты (как в твоей версии)
-end
-
+-- Визуальная покупка
 function runFakePurchase(times)
-    -- код покупки (как в твоей версии)
+    if getgenv().VisualRbx.HiddenForever then return end
+    local add = getgenv().VisualRbx.AddRobuxVal or 20000
+
+    for i = 1, times do
+        -- Визуальное окно оплаты
+        local pay = Instance.new("ScreenGui")
+        pay.Parent = game:GetService("CoreGui")
+        local f = Instance.new("Frame", pay)
+        f.Size = UDim2.new(0, 300, 0, 160)
+        f.Position = UDim2.new(0.5, -150, 0.5, -80)
+        f.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+
+        local txt = Instance.new("TextLabel", f)
+        txt.Size = UDim2.new(1, 0, 0, 40)
+        txt.Text = "Processing Payment..."
+        txt.TextColor3 = Color3.new(1, 1, 1)
+        txt.Font = Enum.Font.GothamBold
+        txt.TextSize = 18
+        txt.BackgroundTransparency = 1
+
+        wait(1.2)
+        pay:Destroy()
+
+        -- Увеличиваем визуальный баланс
+        getgenv().VisualRbx.Balance = (getgenv().VisualRbx.Balance or 0) + add
+        updateBalanceLabel()
+        wait(0.4)
+    end
 end
 
 function showDevExFake()
-    -- код DevEx (как в твоей версии)
+    local dev = Instance.new("ScreenGui", game:GetService("CoreGui"))
+    local f = Instance.new("Frame", dev)
+    f.Size = UDim2.new(0, 380, 0, 200)
+    f.Position = UDim2.new(0.5, -190, 0.5, -100)
+    f.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+
+    local t = Instance.new("TextLabel", f)
+    t.Size = UDim2.new(1, 0, 0, 40)
+    t.Text = "DevEx — Pending Robux"
+    t.TextColor3 = Library.Config.Accent
+    t.Font = Enum.Font.GothamBold
+    t.TextSize = 20
+    t.BackgroundTransparency = 1
+
+    wait(2.5)
+    dev:Destroy()
 end
 
--- Инициализация
-local function init()
-    createGUI()
-    -- Дополнительные слайдеры и кнопки создаются внутри createGUI
-end
-
-init()
+-- Запуск
+createGUI()
