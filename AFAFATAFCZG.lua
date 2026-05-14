@@ -1,8 +1,3 @@
---[[
-    VisualRbx (Silent Edition) v2 - Fixed
-    Полностью самостоятельный скрипт (без внешних библиотек)
-]]
-
 getgenv().VisualRbx = getgenv().VisualRbx or {}
 local Settings = getgenv().VisualRbx
 
@@ -10,110 +5,82 @@ Settings.CurrentFake = Settings.CurrentFake or 0
 Settings.AddAmount = Settings.AddAmount or 10000
 Settings.HiddenForever = false
 
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VisualRbx_Silent"
+ScreenGui.Name = "VisualRbx"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = gethui and gethui() or game:GetService("CoreGui")
+ScreenGui.Parent = game:GetService("CoreGui")
 
--- ===================== FAKE ROBUX OVERLAY =====================
-local FakeRobux = Instance.new("TextLabel")
-FakeRobux.Name = "FakeBalance"
-FakeRobux.Size = UDim2.new(0, 120, 0, 28)
-FakeRobux.Position = UDim2.new(0, 85, 0, 5)
-FakeRobux.BackgroundTransparency = 1
-FakeRobux.Text = tostring(Settings.CurrentFake)
-FakeRobux.TextColor3 = Color3.fromRGB(255, 220, 100)
-FakeRobux.Font = Enum.Font.GothamBold
-FakeRobux.TextSize = 20
-FakeRobux.TextStrokeTransparency = 0.6
-FakeRobux.ZIndex = 999999
-FakeRobux.Parent = ScreenGui
+-- Fake Robux Overlay
+local FakeBalance = Instance.new("TextLabel")
+FakeBalance.Size = UDim2.new(0, 130, 0, 26)
+FakeBalance.Position = UDim2.new(0, 80, 0, 6)
+FakeBalance.BackgroundTransparency = 1
+FakeBalance.Text = tostring(Settings.CurrentFake)
+FakeBalance.TextColor3 = Color3.fromRGB(255, 215, 80)
+FakeBalance.Font = Enum.Font.GothamBold
+FakeBalance.TextSize = 20
+FakeBalance.TextStrokeTransparency = 0.5
+FakeBalance.Parent = ScreenGui
 
--- ===================== MAIN GUI =====================
+-- Main GUI Frame
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 380, 0, 280)
-Main.Position = UDim2.new(0.5, -190, 0.5, -140)
-Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Main.Size = UDim2.new(0, 360, 0, 260)
+Main.Position = UDim2.new(0.5, -180, 0.5, -130)
+Main.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 Main.BackgroundTransparency = 1
-Main.BorderSizePixel = 0
-Main.Visible = true
 Main.Parent = ScreenGui
 
 local Corner = Instance.new("UICorner", Main)
-Corner.CornerRadius = UDim.new(0, 10)
+Corner.CornerRadius = UDim.new(0, 8)
 
 local Stroke = Instance.new("UIStroke", Main)
-Stroke.Color = Color3.fromRGB(70, 140, 255)
-Stroke.Thickness = 1.5
+Stroke.Color = Color3.fromRGB(80, 150, 255)
+Stroke.Thickness = 1.2
 Stroke.Transparency = 1
 
 local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1, -20, 0, 35)
+Title.Size = UDim2.new(1, -20, 0, 32)
 Title.Position = UDim2.new(0, 15, 0, 8)
 Title.BackgroundTransparency = 1
-Title.Text = "VisualRbx <font color='#4d9eff'>(Silent)</font>"
-Title.RichText = true
+Title.Text = "VisualRbx (Silent Edition)"
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
-Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.TextSize = 15
 
--- ===================== CONTROLS =====================
-local function CreateButton(text, posY, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 160, 0, 32)
-    btn.Position = UDim2.new(0, 20, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.Parent = Main
-    
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
-
--- Current Robux (TextBox)
+-- Current Robux
 local CurrentBox = Instance.new("TextBox", Main)
-CurrentBox.Size = UDim2.new(0, 160, 0, 30)
-CurrentBox.Position = UDim2.new(0, 200, 0, 50)
-CurrentBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+CurrentBox.Size = UDim2.new(0, 150, 0, 28)
+CurrentBox.Position = UDim2.new(0, 190, 0, 50)
+CurrentBox.PlaceholderText = "Current Robux"
 CurrentBox.Text = tostring(Settings.CurrentFake)
+CurrentBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
 CurrentBox.TextColor3 = Color3.fromRGB(255,255,255)
 CurrentBox.Font = Enum.Font.Gotham
 CurrentBox.TextSize = 14
-CurrentBox.PlaceholderText = "Current Robux"
-Instance.new("UICorner", CurrentBox).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", CurrentBox).CornerRadius = UDim.new(0, 5)
 
 CurrentBox.FocusLost:Connect(function()
     local num = tonumber(CurrentBox.Text)
     if num then
         Settings.CurrentFake = num
-        FakeRobux.Text = tostring(num)
+        FakeBalance.Text = tostring(num)
     end
 end)
 
 -- Add Amount
 local AddBox = Instance.new("TextBox", Main)
-AddBox.Size = UDim2.new(0, 160, 0, 30)
-AddBox.Position = UDim2.new(0, 200, 0, 90)
-AddBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+AddBox.Size = UDim2.new(0, 150, 0, 28)
+AddBox.Position = UDim2.new(0, 190, 0, 85)
+AddBox.PlaceholderText = "Add Amount"
 AddBox.Text = tostring(Settings.AddAmount)
+AddBox.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
 AddBox.TextColor3 = Color3.fromRGB(255,255,255)
 AddBox.Font = Enum.Font.Gotham
 AddBox.TextSize = 14
-AddBox.PlaceholderText = "Add Amount"
-Instance.new("UICorner", AddBox).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", AddBox).CornerRadius = UDim.new(0, 5)
 
 AddBox.FocusLost:Connect(function()
     local num = tonumber(AddBox.Text)
@@ -121,68 +88,79 @@ AddBox.FocusLost:Connect(function()
 end)
 
 -- Buttons
-CreateButton("Buy 1x", 130, function()
+local function MakeButton(text, y, func)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 150, 0, 30)
+    b.Position = UDim2.new(0, 20, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    b.Text = text
+    b.TextColor3 = Color3.fromRGB(255,255,255)
+    b.Font = Enum.Font.Gotham
+    b.TextSize = 14
+    b.Parent = Main
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+    b.MouseButton1Click:Connect(func)
+end
+
+MakeButton("Buy 1x", 125, function()
     Settings.CurrentFake += Settings.AddAmount
-    FakeRobux.Text = tostring(Settings.CurrentFake)
+    FakeBalance.Text = tostring(Settings.CurrentFake)
 end)
 
-CreateButton("Buy 5x", 170, function()
+MakeButton("Buy 5x", 162, function()
     for i = 1, 5 do
         Settings.CurrentFake += Settings.AddAmount
-        FakeRobux.Text = tostring(Settings.CurrentFake)
-        task.wait(0.15)
+        FakeBalance.Text = tostring(Settings.CurrentFake)
+        task.wait(0.12)
     end
 end)
 
-CreateButton("Buy 10x", 210, function()
+MakeButton("Buy 10x", 199, function()
     for i = 1, 10 do
         Settings.CurrentFake += Settings.AddAmount
-        FakeRobux.Text = tostring(Settings.CurrentFake)
-        task.wait(0.1)
+        FakeBalance.Text = tostring(Settings.CurrentFake)
+        task.wait(0.08)
     end
 end)
 
-CreateButton("Hide Forever", 250, function()
+MakeButton("Hide Forever", 236, function()
     Settings.HiddenForever = true
-    TweenService:Create(Main, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
-    task.wait(0.35)
+    TweenService:Create(Main, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Stroke, TweenInfo.new(0.25), {Transparency = 1}):Play()
+    task.wait(0.3)
     ScreenGui.Enabled = false
 end)
 
--- ===================== TOGGLE (RightControl + B) =====================
-local isOpen = false
+-- Toggle (RightControl + B)
+local Open = false
 
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
+UserInputService.InputBegan:Connect(function(input, g)
+    if g then return end
     if input.KeyCode == Enum.KeyCode.RightControl then
-        Settings.ControlHeld = true
-    elseif Settings.ControlHeld and input.KeyCode == Enum.KeyCode.B then
+        Settings.Ctrl = true
+    elseif Settings.Ctrl and input.KeyCode == Enum.KeyCode.B then
         if Settings.HiddenForever then return end
+        Open = not Open
         
-        isOpen = not isOpen
-        
-        local targetTransparency = isOpen and 0.05 or 1
-        local strokeTransparency = isOpen and 0.65 or 1
-        
+        local t = Open and 0.08 or 1
         TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-            BackgroundTransparency = targetTransparency
+            BackgroundTransparency = t
         }):Play()
         TweenService:Create(Stroke, TweenInfo.new(0.3), {
-            Transparency = strokeTransparency
+            Transparency = Open and 0.6 or 1
         }):Play()
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightControl then
-        Settings.ControlHeld = false
+        Settings.Ctrl = false
     end
 end)
 
--- ===================== INIT =====================
+-- Init
 Main.BackgroundTransparency = 1
 Stroke.Transparency = 1
-FakeRobux.Text = tostring(Settings.CurrentFake)
+FakeBalance.Text = tostring(Settings.CurrentFake)
 
-print("VisualRbx Silent Edition loaded. Press RightControl + B")
+print("VisualRbx loaded. Press RightControl + B")
